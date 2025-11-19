@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "862176163742",
+    "project_id": "appincidencias-47197",
+    "storage_bucket": "appincidencias-47197.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862176163742:android:93931a060b85afa235488f",
+        "android_client_info": {
+          "package_name": "com.example.appincidencias"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeGQQHOgo2rMGAwjtj-eUnasoU-q7Zn7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
