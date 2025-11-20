@@ -33,13 +33,27 @@
         android:gravity="top"
         android:layout_marginBottom="16dp"/>
 
-    <EditText
-        android:id="@+id/inputUrgencia"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nivel de Urgencia:"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/spinnerUrgencia"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Urgencia (Baja, Media, Alta)"
-        android:inputType="text"
+        android:minHeight="48dp"
         android:layout_marginBottom="24dp"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnCrearIncidencia"
