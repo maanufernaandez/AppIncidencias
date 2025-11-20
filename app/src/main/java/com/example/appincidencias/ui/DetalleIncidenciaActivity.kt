@@ -1,9 +1,12 @@
 package com.example.appincidencias.ui
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appincidencias.R
 import com.google.firebase.auth.FirebaseAuth
@@ -26,101 +29,155 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         val txtDesc = findViewById<TextView>(R.id.txtDDesc)
         val txtEstado = findViewById<TextView>(R.id.txtDEstado)
 
-        val btnAsignar = findViewById<Button>(R.id.btnAsignar)
-        val btnEstado = findViewById<Button>(R.id.btnCambiarEstado)
-        val btnCau = findViewById<Button>(R.id.btnAvisarCau)
+        // Referencia al nuevo campo de comentario del guardia (asegúrate de añadir un TextView en el XML si quieres verlo, o úsalo en un Toast)
+        // Por simplicidad, aquí mostramos la descripción original.
 
-        // 1. Ocultar todo por defecto (Seguridad UI)
+        val btnAsignar = findViewById<Button>(R.id.btnAsignar)
+        val btnEstado = findViewById<Button>(R.id.btnCambiarEstado) // Botón principal de acción
+        val btnCau = findViewById<Button>(R.id.btnAvisarCau) // Botón secundario
+
+        // Ocultar por defecto
         btnAsignar.visibility = View.GONE
         btnEstado.visibility = View.GONE
         btnCau.visibility = View.GONE
 
-        // 2. Escuchar cambios en la incidencia
         db.collection("incidencias").document(docId)
             .addSnapshotListener { snap, _ ->
                 if (snap != null && snap.exists()) {
                     txtTitulo.text = "Aula " + (snap.getString("aula") ?: "?")
-                    txtDesc.text = snap.getString("descripcion")
-                    estadoActual = snap.getString("estado") ?: "iniciada"
-                    txtEstado.text = estadoActual.uppercase()
+                    val descripcion = snap.getString("descripcion")
+                    val comentarioGuardia = snap.getString("comentarioGuardia") ?: ""
 
-                    // Actualizar textos de botones según estado
-                    actualizarUIsegunEstado(btnEstado, estadoActual)
+                    // Si el guardia ya comentó, lo mostramos junto a la descripción
+                    if (comentarioGuardia.isNotEmpty()) {
+                        txtDesc.text = "$descripcion\n\n[GUARDIA]: $comentarioGuardia"
+                    } else {
+                        txtDesc.text = descripcion
+                    }
+
+                    estadoActual = snap.getString("estado") ?: "iniciada"
+                    txtEstado.text = estadoActual.uppercase().replace("_", " ")
+
+                    configurarBotones(btnAsignar, btnEstado, btnCau)
                 }
             }
 
-        // 3. Determinar ROL del usuario y mostrar botones
-        val myUid = auth.currentUser?.uid
-        if (myUid != null) {
-            db.collection("usuarios").document(myUid).get()
-                .addOnSuccessListener { userDoc ->
-                    val rol = userDoc.getString("rol") ?: ""
-
-                    if (rol == "administrador") {
-                        btnAsignar.visibility = View.VISIBLE
-
-                        // CORRECCIÓN: El Admin también puede avisar al CAU según requisitos
-                        btnCau.visibility = View.VISIBLE
-
-                        // El admin puede finalizar si ya está reparada o avisada
-                        if (estadoActual == "reparado" || estadoActual == "avisado_cau") {
-                            btnEstado.visibility = View.VISIBLE
-                            btnEstado.text = "FINALIZAR INCIDENCIA"
-                        }
-                    }
-                    else if (rol == "guardia") {
-                        // El guardia trabaja la incidencia
-                        btnEstado.visibility = View.VISIBLE
-                        btnCau.visibility = View.VISIBLE
-                    }
-                    // El docente no ve botones de acción, solo consulta
-                }
-        }
-
-        // 4. Lógica de botones
+        // Listeners de botones
         btnAsignar.setOnClickListener {
             val intent = Intent(this, AsignarIncidenciaActivity::class.java)
             intent.putExtra("id", docId)
             startActivity(intent)
         }
 
+        // Botón para gestionar el aviso al CAU (Solo Admin cuando el guardia lo solicita)
         btnCau.setOnClickListener {
             val intent = Intent(this, AvisarCAUActivity::class.java)
             intent.putExtra("id", docId)
             startActivity(intent)
         }
 
+        // Botón principal de flujo de estados
         btnEstado.setOnClickListener {
-            siguienteEstado()
+            ejecutarAccionEstado()
         }
     }
 
-    private fun actualizarUIsegunEstado(btn: Button, estado: String) {
-        when (estado) {
-            "asignada" -> btn.text = "PONER EN PROCESO"
-            "en proceso" -> btn.text = "MARCAR COMO REPARADO"
-            "reparado" -> btn.text = "FINALIZAR (Solo Admin)"
-            "finalizada" -> btn.visibility = View.GONE
-        }
-    }
+    private fun configurarBotones(btnAsignar: Button, btnEstado: Button, btnCau: Button) {
+        val myUid = auth.currentUser?.uid ?: return
 
-    private fun siguienteEstado() {
-        var nuevoEstado = ""
+        db.collection("usuarios").document(myUid).get().addOnSuccessListener { userDoc ->
+            val rol = userDoc.getString("rol") ?: ""
 
-        // Lógica de transición estricta del documento
-        when (estadoActual) {
-            "asignada" -> nuevoEstado = "en proceso"
-            "en proceso" -> nuevoEstado = "reparado"
-            "reparado" -> nuevoEstado = "finalizada" // Solo admin (controlado por visibilidad)
-            "avisado_cau" -> nuevoEstado = "finalizada" // Solo admin
-            else -> {
-                Toast.makeText(this, "Estado actual: $estadoActual. Espera a que se asigne.", Toast.LENGTH_LONG).show()
-                return
+            // Reiniciar visibilidad
+            btnAsignar.visibility = View.GONE
+            btnEstado.visibility = View.GONE
+            btnCau.visibility = View.GONE
+
+            when (rol) {
+                "administrador" -> {
+                    // Admin puede asignar si está iniciada
+                    if (estadoActual == "iniciada") {
+                        btnAsignar.visibility = View.VISIBLE
+                    }
+                    // Admin finaliza si está reparada
+                    if (estadoActual == "reparado") {
+                        btnEstado.visibility = View.VISIBLE
+                        btnEstado.text = "FINALIZAR INCIDENCIA"
+                    }
+                    // Admin gestiona CAU si el guardia dice que hace falta
+                    if (estadoActual == "requiere_cau") {
+                        btnCau.visibility = View.VISIBLE
+                        btnCau.text = "GESTIONAR AVISO AL CAU"
+                    }
+                    // Admin finaliza si ya se avisó al CAU
+                    if (estadoActual == "avisado_cau") {
+                        btnEstado.visibility = View.VISIBLE
+                        btnEstado.text = "CERRAR (YA AVISADO)"
+                    }
+                }
+                "guardia" -> {
+                    // Guardia recibe "asignada" -> Pasa a "en proceso"
+                    if (estadoActual == "asignada") {
+                        btnEstado.visibility = View.VISIBLE
+                        btnEstado.text = "COMENZAR (EN PROCESO)"
+                    }
+                    // Guardia está trabajando -> Puede Reparar o Pedir CAU
+                    if (estadoActual == "en proceso") {
+                        btnEstado.visibility = View.VISIBLE
+                        btnEstado.text = "MARCAR COMO REPARADO"
+
+                        // Usamos el botón secundario para la opción del CAU
+                        btnCau.visibility = View.VISIBLE
+                        btnCau.text = "NECESARIO AVISAR CAU"
+                        btnCau.setOnClickListener { mostrarDialogoGuardia("requiere_cau") }
+                    }
+                }
+                // Docente: solo mira, no botones
             }
         }
+    }
 
-        if (nuevoEstado.isNotEmpty()) {
-            db.collection("incidencias").document(docId).update("estado", nuevoEstado)
+    private fun ejecutarAccionEstado() {
+        when (estadoActual) {
+            "asignada" -> actualizarEstado("en proceso", "")
+            "en proceso" -> mostrarDialogoGuardia("reparado")
+            "reparado", "avisado_cau" -> actualizarEstado("finalizada", "")
         }
+    }
+
+    // Diálogo para que el guardia explique qué hizo o por qué requiere CAU
+    private fun mostrarDialogoGuardia(nuevoEstado: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(if (nuevoEstado == "reparado") "Detalle de Reparación" else "Motivo aviso CAU")
+
+        val input = EditText(this)
+        input.hint = "Escribe aquí una descripción..."
+        input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        builder.setView(input)
+
+        builder.setPositiveButton("Guardar") { _, _ ->
+            val comentario = input.text.toString().trim()
+            if (comentario.isNotEmpty()) {
+                actualizarEstado(nuevoEstado, comentario)
+            } else {
+                Toast.makeText(this, "La descripción es obligatoria", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.cancel() }
+
+        builder.show()
+    }
+
+    private fun actualizarEstado(estado: String, comentario: String) {
+        val datos = mutableMapOf<String, Any>("estado" to estado)
+        if (comentario.isNotEmpty()) {
+            datos["comentarioGuardia"] = comentario
+        }
+
+        db.collection("incidencias").document(docId).update(datos)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Estado actualizado a $estado", Toast.LENGTH_SHORT).show()
+                finish()
+            }
     }
 }

@@ -8,6 +8,8 @@ data class Incidencia(
     var fecha: String = "",
     var docenteId: String = "",
     var docenteNombre: String = "",
-    var estado: String = "pendiente",
-    var asignadoA: String? = null
+    var estado: String = "pendiente", // iniciada, asignada, en proceso, reparado, requiere_cau, avisado_cau, finalizada
+    var asignadoA: String? = null,
+    var comentarioGuardia: String = "", // NUEVO: Para que el guardia explique qué hizo
+    var personaAvisoCAU: String = ""
 )
