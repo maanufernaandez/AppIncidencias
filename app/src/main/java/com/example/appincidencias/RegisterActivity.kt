@@ -43,8 +43,19 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // 1. Validación de longitud mínima (mantengo la de 6 que tenías)
             if (password.length < 6) {
                 Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // 2. NUEVA VALIDACIÓN: Mayúscula, Minúscula y Número
+            val tieneMayuscula = password.any { it.isUpperCase() }
+            val tieneMinuscula = password.any { it.isLowerCase() }
+            val tieneNumero = password.any { it.isDigit() }
+
+            if (!tieneMayuscula || !tieneMinuscula || !tieneNumero) {
+                Toast.makeText(this, "La contraseña debe contener mayúscula, minúscula y número", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 

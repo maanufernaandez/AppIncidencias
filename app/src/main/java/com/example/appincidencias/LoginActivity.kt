@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.FirebaseFirestore
 
 class LoginActivity : AppCompatActivity() {
@@ -79,8 +81,14 @@ class LoginActivity : AppCompatActivity() {
                     val uid = result.user?.uid ?: ""
                     verificarExistenciaYEntrar(uid)
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Error de acceso: ${it.message}", Toast.LENGTH_LONG).show()
+                // --- MODIFICACIÓN AQUÍ: Gestión de errores personalizada ---
+                .addOnFailureListener { exception ->
+                    val mensajeError = when (exception) {
+                        is FirebaseAuthInvalidUserException -> "No existe un usuario con ese correo"
+                        is FirebaseAuthInvalidCredentialsException -> "La contraseña o el email están incorrectos"
+                        else -> "Error de acceso: ${exception.localizedMessage}"
+                    }
+                    Toast.makeText(this, mensajeError, Toast.LENGTH_LONG).show()
                 }
         }
     }
