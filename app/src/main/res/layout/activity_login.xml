@@ -44,7 +44,7 @@
         android:hint="Contraseña"
         app:endIconMode="password_toggle"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/inputPassword"
@@ -52,6 +52,15 @@
             android:layout_height="wrap_content"
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- NUEVO: Checkbox para recordar datos -->
+    <CheckBox
+        android:id="@+id/checkRecordar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recordar usuario y contraseña"
+        android:layout_gravity="start"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnLogin"
