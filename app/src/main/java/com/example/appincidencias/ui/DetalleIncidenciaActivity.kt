@@ -30,7 +30,7 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         val btnEstado = findViewById<Button>(R.id.btnCambiarEstado)
         val btnCau = findViewById<Button>(R.id.btnAvisarCau)
 
-        // 1. Ocultar todo por defecto (Seguridad primero)
+        // 1. Ocultar todo por defecto (Seguridad UI)
         btnAsignar.visibility = View.GONE
         btnEstado.visibility = View.GONE
         btnCau.visibility = View.GONE
@@ -58,6 +58,10 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
 
                     if (rol == "administrador") {
                         btnAsignar.visibility = View.VISIBLE
+
+                        // CORRECCIÓN: El Admin también puede avisar al CAU según requisitos
+                        btnCau.visibility = View.VISIBLE
+
                         // El admin puede finalizar si ya está reparada o avisada
                         if (estadoActual == "reparado" || estadoActual == "avisado_cau") {
                             btnEstado.visibility = View.VISIBLE
@@ -69,7 +73,7 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
                         btnEstado.visibility = View.VISIBLE
                         btnCau.visibility = View.VISIBLE
                     }
-                    // El docente no ve botones
+                    // El docente no ve botones de acción, solo consulta
                 }
         }
 
@@ -107,10 +111,10 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         when (estadoActual) {
             "asignada" -> nuevoEstado = "en proceso"
             "en proceso" -> nuevoEstado = "reparado"
-            "reparado" -> nuevoEstado = "finalizada" // Solo admin debería poder, pero el botón se oculta si no es admin
-            "avisado_cau" -> nuevoEstado = "finalizada"
+            "reparado" -> nuevoEstado = "finalizada" // Solo admin (controlado por visibilidad)
+            "avisado_cau" -> nuevoEstado = "finalizada" // Solo admin
             else -> {
-                Toast.makeText(this, "Estado actual: $estadoActual. Espera a que el admin asigne.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Estado actual: $estadoActual. Espera a que se asigne.", Toast.LENGTH_LONG).show()
                 return
             }
         }
