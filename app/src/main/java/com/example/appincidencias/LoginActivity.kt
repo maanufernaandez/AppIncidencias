@@ -21,7 +21,6 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         // 1. Comprobación de sesión iniciada (Auto-Login de Firebase)
-        // Si el usuario no cerró sesión explícitamente, Firebase lo recuerda.
         if (auth.currentUser != null) {
             verificarExistenciaYEntrar(auth.currentUser!!.uid)
             return
@@ -67,12 +66,10 @@ class LoginActivity : AppCompatActivity() {
                     // 4. GESTIÓN DE "RECORDAR DATOS"
                     val editor = prefs.edit()
                     if (checkRecordar.isChecked) {
-                        // Si está marcado, guardamos todo
                         editor.putString("email", em)
                         editor.putString("password", pw)
                         editor.putBoolean("remember", true)
                     } else {
-                        // Si no está marcado, borramos todo (limpieza)
                         editor.clear()
                     }
                     editor.apply() // Guardar cambios
@@ -81,35 +78,38 @@ class LoginActivity : AppCompatActivity() {
                     val uid = result.user?.uid ?: ""
                     verificarExistenciaYEntrar(uid)
                 }
-                // --- MODIFICACIÓN AQUÍ: Gestión de errores personalizada ---
+                // --- CAMBIO SOLICITADO: Mensajes específicos según el error ---
                 .addOnFailureListener { exception ->
-                    val mensajeError = when (exception) {
-                        is FirebaseAuthInvalidUserException -> "No existe un usuario con ese correo"
-                        is FirebaseAuthInvalidCredentialsException -> "La contraseña o el email están incorrectos"
-                        else -> "Error de acceso: ${exception.localizedMessage}"
+                    val mensaje = when (exception) {
+                        is FirebaseAuthInvalidUserException -> {
+                            // CASO 1: El correo no existe en la base de datos
+                            "No existe un usuario con ese email"
+                        }
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            // CASO 2: El correo existe, pero la contraseña está mal
+                            // (O el usuario existe pero te estás confundiendo de datos)
+                            "La contraseña o el email están incorrectos"
+                        }
+                        else -> {
+                            // Cualquier otro error (internet, servidor, etc.)
+                            "Error de acceso: ${exception.message}"
+                        }
                     }
-                    Toast.makeText(this, mensajeError, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()
                 }
         }
     }
 
-    // Función auxiliar para comprobar si el usuario tiene datos en Firestore
     private fun verificarExistenciaYEntrar(uid: String) {
         db.collection("usuarios").document(uid).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // TODO CORRECTO: Existe login y existen datos
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {
-                    // ERROR: Existe login PERO NO existen datos (lo borraste de la BD)
                     Toast.makeText(this, "Usuario no encontrado en la base de datos.", Toast.LENGTH_LONG).show()
-                    auth.signOut() // Le cerramos la sesión forzosamente
-
-                    // Si veníamos de la comprobación automática, hay que cargar la UI de login
-                    // para que el usuario pueda intentar otra cuenta
+                    auth.signOut()
                     if (intent.action == Intent.ACTION_MAIN) {
-                        // Como ya estamos en LoginActivity, simplemente recargamos la vista
                         recreate()
                     }
                 }
