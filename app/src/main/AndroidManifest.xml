@@ -5,16 +5,14 @@
         android:allowBackup="true"
         android:label="App Incidencias"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat">
-
-        <activity
-            android:name=".LoginActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+        android:theme="@style/Theme.AppIncidencias"> <activity
+        android:name=".LoginActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent-filter>
+    </activity>
 
         <activity android:name=".RegisterActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="false"/>
@@ -23,7 +21,6 @@
         <activity android:name=".ui.DetalleIncidenciaActivity" android:exported="false"/>
         <activity android:name=".ui.AsignarIncidenciaActivity" android:exported="false"/>
 
-        <!-- Firebase messaging -->
         <service
             android:name=".FirebaseMsgService"
             android:exported="false">
