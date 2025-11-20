@@ -2,9 +2,12 @@ package com.example.appincidencias.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ListView
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.appincidencias.R
 import com.example.appincidencias.adapters.IncidenciasAdapter
 import com.example.appincidencias.models.Incidencia
@@ -13,59 +16,54 @@ import com.google.firebase.firestore.FirebaseFirestore
 class ListaIncidenciasActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
+    private lateinit var adapter: IncidenciasAdapter
+    private var listaIncidencias = mutableListOf<Incidencia>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_incidencias)
 
-        val listView = findViewById<ListView>(R.id.listIncidencias)
+        val recycler = findViewById<RecyclerView>(R.id.recyclerIncidencias)
+        val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
 
-        // Escuchamos la colección "incidencias" en tiempo real
+        // Configurar RecyclerView
+        recycler.layoutManager = LinearLayoutManager(this)
+
+        // Inicializamos adaptador con lista vacía y la acción al hacer click
+        adapter = IncidenciasAdapter(listaIncidencias) { incidencia ->
+            // Al hacer click en la tarjeta
+            val intent = Intent(this, DetalleIncidenciaActivity::class.java)
+            intent.putExtra("id", incidencia.id)
+            startActivity(intent)
+        }
+        recycler.adapter = adapter
+
+        // Cargar datos
         db.collection("incidencias")
             .addSnapshotListener { snap, error ->
-
-                // 1. Gestión de errores de conexión
                 if (error != null) {
-                    Toast.makeText(this, "Error al cargar: ${error.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_SHORT).show()
                     return@addSnapshotListener
                 }
 
-                // 2. Procesar los datos si existen
                 if (snap != null) {
-                    val lista = snap.documents.map { doc ->
+                    listaIncidencias = snap.documents.map { doc ->
                         Incidencia(
                             id = doc.id,
-
-                            // TRUCO: Como no guardamos 'titulo', usamos el 'aula' como título
-                            titulo = doc.getString("aula") ?: "Incidencia General",
-
-                            // Datos reales guardados en CrearIncidencia
                             aula = doc.getString("aula") ?: "",
-                            descripcion = doc.getString("descripcion") ?: "Sin descripción",
+                            descripcion = doc.getString("descripcion") ?: "",
                             urgencia = doc.getString("urgencia") ?: "Media",
-                            estado = doc.getString("estado") ?: "iniciada",
-
-                            // TRUCO: Mapeamos docenteId a creador para compatibilidad
-                            creador = doc.getString("docenteId") ?: "Desconocido",
+                            fecha = doc.getString("fecha") ?: "",
+                            estado = doc.getString("estado") ?: "pendiente",
                             docenteId = doc.getString("docenteId") ?: "",
-
-                            asignadoA = doc.getString("asignadoA"), // Puede ser null
-
-                            // IMPORTANTE: Leer fecha como String (Texto), no como Long (Número)
-                            fecha = doc.getString("fecha") ?: ""
+                            docenteNombre = doc.getString("docenteNombre") ?: ""
                         )
-                    }
+                    }.toMutableList()
 
-                    // 3. Asignar la lista al adaptador
-                    // Asegúrate de que tu IncidenciasAdapter acepte esta lista
-                    listView.adapter = IncidenciasAdapter(this, lista)
+                    adapter.actualizarLista(listaIncidencias)
 
-                    // 4. Clic para ver detalles
-                    listView.setOnItemClickListener { _, _, pos, _ ->
-                        val intent = Intent(this, DetalleIncidenciaActivity::class.java)
-                        intent.putExtra("id", lista[pos].id)
-                        startActivity(intent)
-                    }
+                    // Mostrar mensaje si está vacío
+                    tvEmpty.visibility = if (listaIncidencias.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
     }
