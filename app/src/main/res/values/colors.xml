@@ -2,9 +2,10 @@
 <resources>
     <color name="purple_200">#90CAF9</color>
     <color name="purple_500">#1976D2</color> <color name="purple_700">#0D47A1</color> <color name="teal_200">#FFCC80</color>
-    <color name="teal_700">#F57C00</color>   <color name="black">#212121</color>
+    <color name="teal_700">#F57C00</color>
+    <color name="black">#212121</color>
     <color name="white">#FFFFFF</color>
-    <color name="gray_bg">#F5F5F5</color>     <color name="gray_text">#757575</color>
 
-    <color name="status_pending">#D32F2F</color> <color name="status_process">#FBC02D</color> <color name="status_done">#388E3C</color>
+    <color name="gray_bg">#F5F5F5</color>
+    <color name="gray_text">#757575</color>
 </resources>
