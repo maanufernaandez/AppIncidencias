@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:padding="24dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <LinearLayout
         android:orientation="vertical"
@@ -10,29 +11,54 @@
         android:layout_height="wrap_content">
 
         <TextView android:id="@+id/txtDTitulo"
-            android:textSize="22sp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:textColor="@color/purple_700"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView android:id="@+id/txtDEstado"
+            android:text="ESTADO"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="#E0E0E0"
+            android:padding="6dp"
+            android:layout_marginBottom="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView android:text="Descripción:"
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <TextView android:id="@+id/txtDDesc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView android:id="@+id/txtDEstado"
-            android:text="estado"
-            android:layout_width="wrap_content"
+            android:textSize="16sp"
+            android:layout_marginBottom="32dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <Button
             android:id="@+id/btnAsignar"
             android:text="Asignar técnico"
+            android:backgroundTint="@color/purple_500"
+            android:layout_marginBottom="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
         <Button
             android:id="@+id/btnCambiarEstado"
-            android:text="Cambiar estado"
+            android:text="Avanzar Estado"
+            android:backgroundTint="@color/teal_700"
+            android:layout_marginBottom="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btnAvisarCau"
+            android:text="Avisar al CAU (Externo)"
+            android:backgroundTint="#D32F2F"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
