@@ -21,13 +21,14 @@ class RegisterActivity : AppCompatActivity() {
 
         val inputEmail = findViewById<EditText>(R.id.inputEmail)
         val inputPassword = findViewById<EditText>(R.id.inputPassword)
+        // Asegúrate de que en tu XML existe este ID (inputConfirmPassword)
+        val inputConfirmPassword = findViewById<EditText>(R.id.inputConfirmPassword)
         val inputNombre = findViewById<EditText>(R.id.inputNombre)
 
         val spinnerRol = findViewById<Spinner>(R.id.spinnerRol)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
         val btnLogin = findViewById<Button>(R.id.btnGoLogin)
 
-        // RELLENAR ROLES EN EL SPINNER
         val roles = listOf("docente", "guardia", "administrador")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
         spinnerRol.adapter = adapter
@@ -35,37 +36,39 @@ class RegisterActivity : AppCompatActivity() {
         btnRegister.setOnClickListener {
             val email = inputEmail.text.toString().trim()
             val password = inputPassword.text.toString().trim()
+            val confirmPassword = inputConfirmPassword.text.toString().trim()
             val nombre = inputNombre.text.toString().trim()
             val rol = spinnerRol.selectedItem.toString()
 
-            if (email.isEmpty() || password.isEmpty() || nombre.isEmpty()) {
+            // 1. Validar campos vacíos
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || nombre.isEmpty()) {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 1. Validación de longitud mínima (mantengo la de 6 que tenías)
-            if (password.length < 6) {
-                Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+            // 2. Validar que las contraseñas coincidan
+            if (password != confirmPassword) {
+                Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 2. NUEVA VALIDACIÓN: Mayúscula, Minúscula y Número
+            // 3. Validar requisitos de la contraseña
             val tieneMayuscula = password.any { it.isUpperCase() }
             val tieneMinuscula = password.any { it.isLowerCase() }
             val tieneNumero = password.any { it.isDigit() }
 
-            if (!tieneMayuscula || !tieneMinuscula || !tieneNumero) {
-                Toast.makeText(this, "La contraseña debe contener mayúscula, minúscula y número", Toast.LENGTH_LONG).show()
+            if (password.length < 6 || !tieneMayuscula || !tieneMinuscula || !tieneNumero) {
+                Toast.makeText(this, "La contraseña debe tener 6 caracteres, mayúscula, minúscula y número", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // Crear usuario en Firebase Auth
+            // 4. Crear usuario en Firebase Auth
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { result ->
                     val userId = result.user?.uid ?: return@addOnSuccessListener
 
-                    // Crear objeto User en Firestore
-                    val user = hashMapOf(
+                    // 5. Guardar directamente en Firestore (SIN enviar email de verificación)
+                    val userMap = hashMapOf(
                         "uid" to userId,
                         "nombre" to nombre,
                         "email" to email,
@@ -74,18 +77,20 @@ class RegisterActivity : AppCompatActivity() {
 
                     db.collection("usuarios")
                         .document(userId)
-                        .set(user)
+                        .set(userMap)
                         .addOnSuccessListener {
                             Toast.makeText(this, "Usuario registrado correctamente", Toast.LENGTH_SHORT).show()
+
+                            // Redirigir al Login
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(this, "Error al guardar el usuario", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this, "Error al guardar datos: ${it.message}", Toast.LENGTH_LONG).show()
                         }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Error en registro: ${it.message}", Toast.LENGTH_LONG).show()
                 }
         }
 
