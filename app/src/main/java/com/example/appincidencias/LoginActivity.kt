@@ -18,9 +18,11 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // --- NUEVO: Ocultar la barra superior por defecto ---
+        supportActionBar?.hide()
+
         auth = FirebaseAuth.getInstance()
 
-        // 1. Comprobación de sesión iniciada (Auto-Login de Firebase)
         if (auth.currentUser != null) {
             verificarExistenciaYEntrar(auth.currentUser!!.uid)
             return
@@ -34,7 +36,6 @@ class LoginActivity : AppCompatActivity() {
         val btnGotoRegister = findViewById<Button>(R.id.btnGotoRegister)
         val checkRecordar = findViewById<CheckBox>(R.id.checkRecordar)
 
-        // 2. RECUPERAR DATOS GUARDADOS (SharedPreferences)
         val prefs = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE)
         val savedEmail = prefs.getString("email", "")
         val savedPass = prefs.getString("password", "")
@@ -59,11 +60,8 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 3. Intentamos loguear con Authentication
             auth.signInWithEmailAndPassword(em, pw)
                 .addOnSuccessListener { result ->
-
-                    // 4. GESTIÓN DE "RECORDAR DATOS"
                     val editor = prefs.edit()
                     if (checkRecordar.isChecked) {
                         editor.putString("email", em)
@@ -72,28 +70,16 @@ class LoginActivity : AppCompatActivity() {
                     } else {
                         editor.clear()
                     }
-                    editor.apply() // Guardar cambios
+                    editor.apply()
 
-                    // Login correcto, verificamos BD
                     val uid = result.user?.uid ?: ""
                     verificarExistenciaYEntrar(uid)
                 }
-                // --- CAMBIO SOLICITADO: Mensajes específicos según el error ---
                 .addOnFailureListener { exception ->
                     val mensaje = when (exception) {
-                        is FirebaseAuthInvalidUserException -> {
-                            // CASO 1: El correo no existe en la base de datos
-                            "No existe un usuario con ese email"
-                        }
-                        is FirebaseAuthInvalidCredentialsException -> {
-                            // CASO 2: El correo existe, pero la contraseña está mal
-                            // (O el usuario existe pero te estás confundiendo de datos)
-                            "La contraseña o el email están incorrectos"
-                        }
-                        else -> {
-                            // Cualquier otro error (internet, servidor, etc.)
-                            "Error de acceso: ${exception.message}"
-                        }
+                        is FirebaseAuthInvalidUserException -> "No existe un usuario con ese email"
+                        is FirebaseAuthInvalidCredentialsException -> "La contraseña o el email están incorrectos"
+                        else -> "Error de acceso: ${exception.message}"
                     }
                     Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()
                 }
