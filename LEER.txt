@@ -1,0 +1,13 @@
+hay 1 usuario creado por rol:
+
+manuadministrador@gmail.com
+Administrador1
+
+manudocente@gmail.com
+Docente1
+
+manuguardia@gmail.com
+Guardia1
+
+
+La BD es la de google (Firebase)
