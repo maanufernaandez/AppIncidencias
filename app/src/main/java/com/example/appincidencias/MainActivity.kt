@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import com.example.appincidencias.ui.CrearIncidenciaActivity
 import com.example.appincidencias.ui.DetalleIncidenciaActivity
 import com.example.appincidencias.ui.ListaIncidenciasActivity
-import com.example.appincidencias.ui.ListaUsuariosActivity // Asegúrate de que este archivo existe
+import com.example.appincidencias.ui.ListaUsuariosActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 

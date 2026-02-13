@@ -30,30 +30,24 @@ class ListaIncidenciasActivity : AppCompatActivity() {
         val recycler = findViewById<RecyclerView>(R.id.recyclerIncidencias)
         val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
 
-        // Configurar RecyclerView
         recycler.layoutManager = LinearLayoutManager(this)
 
-        // Inicializamos adaptador con lista vacía y la acción al hacer click
         adapter = IncidenciasAdapter(listaIncidencias) { incidencia ->
-            // Al hacer click en la tarjeta vamos al detalle
             val intent = Intent(this, DetalleIncidenciaActivity::class.java)
             intent.putExtra("id", incidencia.id)
             startActivity(intent)
         }
         recycler.adapter = adapter
 
-        // Llamamos a la función que gestiona la carga según el rol
         cargarIncidencias(tvEmpty)
     }
 
     private fun cargarIncidencias(tvEmpty: TextView) {
         val userId = auth.currentUser?.uid ?: return
 
-        // 1. Obtenemos el rol del usuario actual
         db.collection("usuarios").document(userId).get().addOnSuccessListener { userDoc ->
             val rol = userDoc.getString("rol") ?: ""
 
-            // 2. Escuchamos cambios en tiempo real en la colección de incidencias
             db.collection("incidencias")
                 .addSnapshotListener { snap, error ->
                     if (error != null) {
@@ -62,7 +56,6 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                     }
 
                     if (snap != null) {
-                        // Mapeamos los documentos a objetos Incidencia
                         var lista = snap.documents.map { doc ->
                             Incidencia(
                                 id = doc.id,
@@ -76,14 +69,10 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                             )
                         }
 
-                        // 3. FILTRO: Si es docente, solo mostramos las que él creó
                         if (rol == "docente") {
                             lista = lista.filter { it.docenteId == userId }
                         }
 
-                        // 4. ORDENACIÓN:
-                        // - Primero agrupa por Estado (alfabéticamente)
-                        // - Luego ordena por Fecha descendente (la más nueva arriba dentro de cada estado)
                         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
                         listaIncidencias = lista.sortedWith(
@@ -97,10 +86,8 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                                 }
                         ).toMutableList()
 
-                        // Actualizamos la interfaz
                         adapter.actualizarLista(listaIncidencias)
 
-                        // Mostramos u ocultamos el mensaje de "No hay incidencias"
                         tvEmpty.visibility = if (listaIncidencias.isEmpty()) View.VISIBLE else View.GONE
                     }
                 }

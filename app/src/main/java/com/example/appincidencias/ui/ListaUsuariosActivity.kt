@@ -1,7 +1,6 @@
 package com.example.appincidencias.ui
 
 import android.os.Bundle
-import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,7 +19,7 @@ class ListaUsuariosActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_lista_usuarios) // Asegúrate de crear este XML
+        setContentView(R.layout.activity_lista_usuarios)
 
         val recycler = findViewById<RecyclerView>(R.id.recyclerUsuarios)
         recycler.layoutManager = LinearLayoutManager(this)
@@ -45,7 +44,6 @@ class ListaUsuariosActivity : AppCompatActivity() {
                     )
                 }
 
-                // Agrupar/Ordenar: Primero Admins, luego Docentes, luego Guardias (o como prefieras)
                 listaUsuarios = usuarios.sortedBy { it.rol }
                 adapter.actualizarLista(listaUsuarios)
             }
@@ -56,7 +54,6 @@ class ListaUsuariosActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Editar Usuario")
 
-        // Layout vertical para el diálogo
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
         layout.setPadding(50, 40, 50, 10)
@@ -66,17 +63,15 @@ class ListaUsuariosActivity : AppCompatActivity() {
         inputNombre.setText(user.nombre)
         layout.addView(inputNombre)
 
-        val inputEmail = EditText(this) // Nota: Esto solo cambia en DB, no en Auth por seguridad
+        val inputEmail = EditText(this)
         inputEmail.hint = "Email"
         inputEmail.setText(user.email)
         layout.addView(inputEmail)
 
-        // Spinner para el Rol
         val spinnerRol = Spinner(this)
         val roles = listOf("docente", "guardia", "administrador")
         val adapterRol = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
         spinnerRol.adapter = adapterRol
-        // Seleccionar el rol actual
         val rolIndex = roles.indexOf(user.rol)
         if (rolIndex >= 0) spinnerRol.setSelection(rolIndex)
         layout.addView(spinnerRol)
