@@ -1,0 +1,20 @@
+NOTAS:
+
+manuadministrador@gmail.com
+Administrador1
+
+manudocente@gmail.com
+Docente1
+
+manudocente2@gmail.com
+Docente2
+
+manuguardia@gmail.com
+Guardia1
+
+manuguardia2@gmail.com
+Guardia2
+
+TODO:
+
+Modificar tarjetas de incidencias

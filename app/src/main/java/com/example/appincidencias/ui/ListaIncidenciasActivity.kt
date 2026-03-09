@@ -36,6 +36,8 @@ class ListaIncidenciasActivity : AppCompatActivity() {
             val intent = Intent(this, DetalleIncidenciaActivity::class.java)
             intent.putExtra("id", incidencia.id)
             startActivity(intent)
+            // Añadimos la animación al pulsar una tarjeta
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
         recycler.adapter = adapter
 
@@ -44,6 +46,9 @@ class ListaIncidenciasActivity : AppCompatActivity() {
 
     private fun cargarIncidencias(tvEmpty: TextView) {
         val userId = auth.currentUser?.uid ?: return
+
+        val filtrarPropias = intent.getBooleanExtra("filtrar_propias", false)
+        val filtroGuardia = intent.getStringExtra("filtro_guardia")
 
         db.collection("usuarios").document(userId).get().addOnSuccessListener { userDoc ->
             val rol = userDoc.getString("rol") ?: ""
@@ -69,8 +74,23 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                             )
                         }
 
-                        if (rol == "docente") {
+                        // Filtro para el Docente
+                        if (filtrarPropias && rol == "docente") {
                             lista = lista.filter { it.docenteId == userId }
+                        }
+
+                        // Filtro para el Guardia
+                        if (rol == "guardia" && filtroGuardia != null) {
+                            if (filtroGuardia == "proceso") {
+                                lista = lista.filter { it.estado == "asignada" || it.estado == "en proceso" }
+                            } else if (filtroGuardia == "finalizadas") {
+                                lista = lista.filter {
+                                    it.estado == "reparado" ||
+                                            it.estado == "requiere_cau" ||
+                                            it.estado == "finalizada" ||
+                                            it.estado == "avisado_cau"
+                                }
+                            }
                         }
 
                         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())

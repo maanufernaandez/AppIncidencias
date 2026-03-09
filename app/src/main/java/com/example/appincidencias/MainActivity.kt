@@ -30,20 +30,23 @@ class MainActivity : AppCompatActivity() {
         crearCanalNotificacion()
         verificarNuevasAsignaciones()
 
-        // Referencias a los botones del XML
         val btnCrear = findViewById<Button>(R.id.btnCrearIncidencia)
         val btnLista = findViewById<Button>(R.id.btnLista)
+        val btnTodas = findViewById<Button>(R.id.btnListaTodas)
+        val btnGuardiaProceso = findViewById<Button>(R.id.btnGuardiaProceso)
+        val btnGuardiaFinalizadas = findViewById<Button>(R.id.btnGuardiaFinalizadas)
         val btnUsuarios = findViewById<Button>(R.id.btnVerUsuarios)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
 
-        // 1. Por defecto ocultamos todo hasta saber el rol
         btnCrear.visibility = View.GONE
         btnLista.visibility = View.GONE
+        btnTodas.visibility = View.GONE
+        btnGuardiaProceso.visibility = View.GONE
+        btnGuardiaFinalizadas.visibility = View.GONE
         btnUsuarios.visibility = View.GONE
 
         val userId = auth.currentUser?.uid ?: return
 
-        // 2. Comprobamos el rol en Firebase
         db.collection("usuarios").document(userId).get().addOnSuccessListener { doc ->
             val rol = doc.getString("rol") ?: ""
 
@@ -51,11 +54,13 @@ class MainActivity : AppCompatActivity() {
                 "docente" -> {
                     btnCrear.visibility = View.VISIBLE
                     btnLista.visibility = View.VISIBLE
-                    btnLista.text = "Ver Mis Incidencias"
+                    btnLista.text = "Ver Incidencias Propias"
+                    btnTodas.visibility = View.VISIBLE
+                    btnTodas.text = "Ver Todas las Incidencias"
                 }
                 "guardia" -> {
-                    btnLista.visibility = View.VISIBLE
-                    btnLista.text = "Ver Incidencias"
+                    btnGuardiaProceso.visibility = View.VISIBLE
+                    btnGuardiaFinalizadas.visibility = View.VISIBLE
                 }
                 "administrador" -> {
                     btnUsuarios.visibility = View.VISIBLE
@@ -65,24 +70,48 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 3. Configuración de Listeners (Clicks)
         btnCrear.setOnClickListener {
             startActivity(Intent(this, CrearIncidenciaActivity::class.java))
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
         btnLista.setOnClickListener {
             val intent = Intent(this, ListaIncidenciasActivity::class.java)
+            intent.putExtra("filtrar_propias", true)
             startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+
+        btnTodas.setOnClickListener {
+            val intent = Intent(this, ListaIncidenciasActivity::class.java)
+            intent.putExtra("filtrar_propias", false)
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+
+        btnGuardiaProceso.setOnClickListener {
+            val intent = Intent(this, ListaIncidenciasActivity::class.java)
+            intent.putExtra("filtro_guardia", "proceso")
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+
+        btnGuardiaFinalizadas.setOnClickListener {
+            val intent = Intent(this, ListaIncidenciasActivity::class.java)
+            intent.putExtra("filtro_guardia", "finalizadas")
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
         btnUsuarios.setOnClickListener {
-            // Si te da error aquí es porque no has creado el archivo ListaUsuariosActivity.kt
             startActivity(Intent(this, ListaUsuariosActivity::class.java))
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
         btnLogout.setOnClickListener {
             auth.signOut()
             startActivity(Intent(this, LoginActivity::class.java))
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             finish()
         }
     }
@@ -92,7 +121,6 @@ class MainActivity : AppCompatActivity() {
     private fun verificarNuevasAsignaciones() {
         val user = auth.currentUser ?: return
 
-        // Escuchar si hay incidencias asignadas a mí (Guardia)
         db.collection("incidencias")
             .whereEqualTo("asignadoA", user.uid)
             .whereEqualTo("estado", "asignada")

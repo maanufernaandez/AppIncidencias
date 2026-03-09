@@ -8,14 +8,6 @@
     android:padding="24dp"
     tools:context=".MainActivity">
 
-    <ImageView
-        android:id="@+id/imgLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginBottom="32dp"
-        android:src="@mipmap/ic_launcher"
-        android:contentDescription="Logo App" />
-
     <Button
         android:id="@+id/btnCrearIncidencia"
         android:layout_width="match_parent"
@@ -28,6 +20,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Ver Incidencias"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnListaTodas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ver Todas las Incidencias"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnGuardiaProceso"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Incidencias En Proceso"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnGuardiaFinalizadas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Incidencias Finalizadas"
+        android:visibility="gone"
         android:layout_marginBottom="16dp" />
 
     <Button
