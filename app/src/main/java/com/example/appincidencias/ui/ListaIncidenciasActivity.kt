@@ -36,7 +36,6 @@ class ListaIncidenciasActivity : AppCompatActivity() {
             val intent = Intent(this, DetalleIncidenciaActivity::class.java)
             intent.putExtra("id", incidencia.id)
             startActivity(intent)
-            // Añadimos la animación al pulsar una tarjeta
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
         recycler.adapter = adapter
@@ -61,7 +60,22 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                     }
 
                     if (snap != null) {
-                        var lista = snap.documents.map { doc ->
+                        val documentosFiltrados = snap.documents.filter { doc ->
+                            val asignadoA = doc.getString("asignadoA")
+                            val estado = doc.getString("estado")
+
+                            if (filtrarPropias && rol == "docente") {
+                                doc.getString("docenteId") == userId
+                            } else if (rol == "guardia" && filtroGuardia == "proceso") {
+                                asignadoA == userId && (estado == "asignada" || estado == "en proceso")
+                            } else if (rol == "guardia" && filtroGuardia == "resto") {
+                                !(asignadoA == userId && (estado == "asignada" || estado == "en proceso"))
+                            } else {
+                                true
+                            }
+                        }
+
+                        val lista = documentosFiltrados.map { doc ->
                             Incidencia(
                                 id = doc.id,
                                 aula = doc.getString("aula") ?: "",
@@ -72,25 +86,6 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                                 docenteId = doc.getString("docenteId") ?: "",
                                 docenteNombre = doc.getString("docenteNombre") ?: ""
                             )
-                        }
-
-                        // Filtro para el Docente
-                        if (filtrarPropias && rol == "docente") {
-                            lista = lista.filter { it.docenteId == userId }
-                        }
-
-                        // Filtro para el Guardia
-                        if (rol == "guardia" && filtroGuardia != null) {
-                            if (filtroGuardia == "proceso") {
-                                lista = lista.filter { it.estado == "asignada" || it.estado == "en proceso" }
-                            } else if (filtroGuardia == "finalizadas") {
-                                lista = lista.filter {
-                                    it.estado == "reparado" ||
-                                            it.estado == "requiere_cau" ||
-                                            it.estado == "finalizada" ||
-                                            it.estado == "avisado_cau"
-                                }
-                            }
                         }
 
                         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())

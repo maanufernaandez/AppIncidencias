@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         val btnLista = findViewById<Button>(R.id.btnLista)
         val btnTodas = findViewById<Button>(R.id.btnListaTodas)
         val btnGuardiaProceso = findViewById<Button>(R.id.btnGuardiaProceso)
-        val btnGuardiaFinalizadas = findViewById<Button>(R.id.btnGuardiaFinalizadas)
+        val btnGuardiaResto = findViewById<Button>(R.id.btnGuardiaResto)
         val btnUsuarios = findViewById<Button>(R.id.btnVerUsuarios)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
 
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         btnLista.visibility = View.GONE
         btnTodas.visibility = View.GONE
         btnGuardiaProceso.visibility = View.GONE
-        btnGuardiaFinalizadas.visibility = View.GONE
+        btnGuardiaResto.visibility = View.GONE
         btnUsuarios.visibility = View.GONE
 
         val userId = auth.currentUser?.uid ?: return
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 "guardia" -> {
                     btnGuardiaProceso.visibility = View.VISIBLE
-                    btnGuardiaFinalizadas.visibility = View.VISIBLE
+                    btnGuardiaResto.visibility = View.VISIBLE
                 }
                 "administrador" -> {
                     btnUsuarios.visibility = View.VISIBLE
@@ -96,9 +96,9 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
-        btnGuardiaFinalizadas.setOnClickListener {
+        btnGuardiaResto.setOnClickListener {
             val intent = Intent(this, ListaIncidenciasActivity::class.java)
-            intent.putExtra("filtro_guardia", "finalizadas")
+            intent.putExtra("filtro_guardia", "resto")
             startActivity(intent)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
