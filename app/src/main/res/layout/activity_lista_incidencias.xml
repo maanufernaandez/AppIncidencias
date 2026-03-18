@@ -2,12 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerIncidencias"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    android:background="#F9FAFB"> <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recyclerIncidencias"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingTop="8dp"
+    android:paddingBottom="16dp" />
 
     <TextView
         android:id="@+id/tvEmpty"
@@ -16,6 +17,7 @@
         android:layout_centerInParent="true"
         android:text="No hay incidencias"
         android:textSize="18sp"
+        android:textColor="#9CA3AF"
         android:visibility="gone" />
 
 </RelativeLayout>

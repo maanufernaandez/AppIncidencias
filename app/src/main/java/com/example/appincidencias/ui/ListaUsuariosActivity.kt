@@ -51,37 +51,39 @@ class ListaUsuariosActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoEditar(user: User) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Editar Usuario")
+        // Inflamos nuestro diseño XML personalizado
+        val view = layoutInflater.inflate(R.layout.dialog_editar_usuario, null)
 
-        val layout = LinearLayout(this)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(50, 40, 50, 10)
+        val etNombre = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etEditNombre)
+        val etEmail = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etEditEmail)
+        val autoCompleteRol = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteEditRol)
 
-        val inputNombre = EditText(this)
-        inputNombre.hint = "Nombre"
-        inputNombre.setText(user.nombre)
-        layout.addView(inputNombre)
+        // Cargamos los datos actuales en los campos
+        etNombre.setText(user.nombre)
+        etEmail.setText(user.email)
 
-        val inputEmail = EditText(this)
-        inputEmail.hint = "Email"
-        inputEmail.setText(user.email)
-        layout.addView(inputEmail)
+        // Configuramos el desplegable con las opciones capitalizadas
+        val rolesMenu = listOf("Docente", "Guardia", "Administrador")
+        val adapterRol = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, rolesMenu)
+        autoCompleteRol.setAdapter(adapterRol)
 
-        val spinnerRol = Spinner(this)
-        val roles = listOf("docente", "guardia", "administrador")
-        val adapterRol = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
-        spinnerRol.adapter = adapterRol
-        val rolIndex = roles.indexOf(user.rol)
-        if (rolIndex >= 0) spinnerRol.setSelection(rolIndex)
-        layout.addView(spinnerRol)
+        // Convertimos el rol actual ("docente") a formato visual ("Docente") para que salga preseleccionado
+        val rolActualCapitalizado = user.rol.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+        autoCompleteRol.setText(rolActualCapitalizado, false)
 
-        builder.setView(layout)
+        // Usamos MaterialAlertDialogBuilder para que la ventana tenga el estilo de Material Design
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        builder.setView(view)
 
         builder.setPositiveButton("Guardar") { _, _ ->
-            val nuevoNombre = inputNombre.text.toString()
-            val nuevoEmail = inputEmail.text.toString()
-            val nuevoRol = spinnerRol.selectedItem.toString()
+            val nuevoNombre = etNombre.text.toString().trim()
+            val nuevoEmail = etEmail.text.toString().trim()
+            val nuevoRol = autoCompleteRol.text.toString().lowercase() // Volvemos a guardarlo en minúscula
+
+            if (nuevoNombre.isEmpty() || nuevoEmail.isEmpty() || nuevoRol.isEmpty()) {
+                Toast.makeText(this, "No se pueden dejar campos vacíos", Toast.LENGTH_SHORT).show()
+                return@setPositiveButton
+            }
 
             val datos = mapOf(
                 "nombre" to nuevoNombre,
@@ -97,6 +99,7 @@ class ListaUsuariosActivity : AppCompatActivity() {
                     Toast.makeText(this, "Error al actualizar", Toast.LENGTH_SHORT).show()
                 }
         }
+
         builder.setNegativeButton("Cancelar", null)
         builder.show()
     }

@@ -14,45 +14,47 @@ class RegisterActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_register)
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        val inputEmail = findViewById<EditText>(R.id.inputEmail)
-        val inputPassword = findViewById<EditText>(R.id.inputPassword)
-        // Asegúrate de que en tu XML existe este ID (inputConfirmPassword)
-        val inputConfirmPassword = findViewById<EditText>(R.id.inputConfirmPassword)
-        val inputNombre = findViewById<EditText>(R.id.inputNombre)
+        val inputEmail = findViewById<EditText>(R.id.etEmail)
+        val inputPassword = findViewById<EditText>(R.id.etPassword)
+        val inputConfirmPassword = findViewById<EditText>(R.id.etConfirmPassword)
+        val inputNombre = findViewById<EditText>(R.id.etNombre)
 
-        val spinnerRol = findViewById<Spinner>(R.id.spinnerRol)
+        // Enlazamos el nuevo menú desplegable
+        val autoCompleteRol = findViewById<AutoCompleteTextView>(R.id.autoCompleteRol)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
-        val btnLogin = findViewById<Button>(R.id.btnGoLogin)
+        val btnLogin = findViewById<Button>(R.id.btnLogin)
 
-        val roles = listOf("docente", "guardia", "administrador")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
-        spinnerRol.adapter = adapter
+        // Nombres más visuales (primera en mayúscula)
+        val roles = listOf("Docente", "Guardia", "Administrador")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, roles)
+        autoCompleteRol.setAdapter(adapter)
 
         btnRegister.setOnClickListener {
             val email = inputEmail.text.toString().trim()
             val password = inputPassword.text.toString().trim()
             val confirmPassword = inputConfirmPassword.text.toString().trim()
             val nombre = inputNombre.text.toString().trim()
-            val rol = spinnerRol.selectedItem.toString()
 
-            // 1. Validar campos vacíos
-            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || nombre.isEmpty()) {
-                Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+            // Capturamos el texto y lo convertimos a minúscula para guardarlo en Firebase
+            val rolTexto = autoCompleteRol.text.toString()
+            val rol = rolTexto.lowercase()
+
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || nombre.isEmpty() || rolTexto.isEmpty()) {
+                Toast.makeText(this, "Completa todos los campos y selecciona un rol", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 2. Validar que las contraseñas coincidan
             if (password != confirmPassword) {
                 Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 3. Validar requisitos de la contraseña
             val tieneMayuscula = password.any { it.isUpperCase() }
             val tieneMinuscula = password.any { it.isLowerCase() }
             val tieneNumero = password.any { it.isDigit() }
@@ -62,12 +64,10 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 4. Crear usuario en Firebase Auth
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { result ->
                     val userId = result.user?.uid ?: return@addOnSuccessListener
 
-                    // 5. Guardar directamente en Firestore (SIN enviar email de verificación)
                     val userMap = hashMapOf(
                         "uid" to userId,
                         "nombre" to nombre,
@@ -80,8 +80,6 @@ class RegisterActivity : AppCompatActivity() {
                         .set(userMap)
                         .addOnSuccessListener {
                             Toast.makeText(this, "Usuario registrado correctamente", Toast.LENGTH_SHORT).show()
-
-                            // Redirigir al Login
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
                         }

@@ -17,8 +17,6 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // --- NUEVO: Ocultar la barra superior por defecto ---
         supportActionBar?.hide()
 
         auth = FirebaseAuth.getInstance()
@@ -30,10 +28,11 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
-        val emailInput = findViewById<EditText>(R.id.inputEmail)
-        val passInput = findViewById<EditText>(R.id.inputPassword)
+        // IDs actualizados para coincidir con el XML moderno
+        val emailInput = findViewById<EditText>(R.id.etEmail)
+        val passInput = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
-        val btnGotoRegister = findViewById<Button>(R.id.btnGotoRegister)
+        val btnGotoRegister = findViewById<Button>(R.id.btnRegister)
         val checkRecordar = findViewById<CheckBox>(R.id.checkRecordar)
 
         val prefs = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE)

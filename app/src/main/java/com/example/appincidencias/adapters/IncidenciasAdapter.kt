@@ -8,54 +8,79 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appincidencias.R
 import com.example.appincidencias.models.Incidencia
+import com.google.android.material.card.MaterialCardView
 
 class IncidenciasAdapter(
     private var lista: List<Incidencia>,
-    private val onItemClick: (Incidencia) -> Unit // Función lambda para el click
-) : RecyclerView.Adapter<IncidenciasAdapter.ViewHolder>() {
+    private val onClick: (Incidencia) -> Unit
+) : RecyclerView.Adapter<IncidenciasAdapter.IncidenciaViewHolder>() {
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val txtAula: TextView = view.findViewById(R.id.txtAula)
-        val txtDescripcion: TextView = view.findViewById(R.id.txtDescripcion)
-        val txtEstado: TextView = view.findViewById(R.id.txtEstado)
-        val txtFecha: TextView = view.findViewById(R.id.txtFecha)
-        val viewStatus: View = view.findViewById(R.id.viewStatusColor)
+    class IncidenciaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvAula: TextView = view.findViewById(R.id.tvAula)
+        val tvDescripcion: TextView = view.findViewById(R.id.tvDescripcion)
+        val tvFecha: TextView = view.findViewById(R.id.tvFecha)
+        val tvUrgencia: TextView = view.findViewById(R.id.tvUrgencia)
+        val tvEstado: TextView = view.findViewById(R.id.tvEstado)
+        val cardEstado: MaterialCardView = view.findViewById(R.id.cardEstado)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IncidenciaViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_incidencia, parent, false)
-        return ViewHolder(view)
+        return IncidenciaViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = lista[position]
+    override fun onBindViewHolder(holder: IncidenciaViewHolder, position: Int) {
+        val incidencia = lista[position]
 
-        holder.txtAula.text = "Aula ${item.aula}"
-        holder.txtDescripcion.text = item.descripcion
-        holder.txtFecha.text = item.fecha
-        holder.txtEstado.text = item.estado.uppercase()
+        holder.tvAula.text = incidencia.aula
+        holder.tvDescripcion.text = incidencia.descripcion
 
-        // Lógica visual profesional: Color según estado
-        when (item.estado.lowercase()) {
-            "pendiente" -> {
-                holder.viewStatus.setBackgroundColor(Color.parseColor("#D32F2F")) // Rojo
-                holder.txtEstado.setTextColor(Color.parseColor("#D32F2F"))
+        // Limpiamos un poco la fecha si es muy larga
+        holder.tvFecha.text = incidencia.fecha.replace(" ", " • ")
+
+        // Colores y Emojis dinámicos para URGENCIA
+        when (incidencia.urgencia.lowercase()) {
+            "alta" -> {
+                holder.tvUrgencia.text = "🔴 Alta"
+                holder.tvUrgencia.setTextColor(Color.parseColor("#EF4444"))
             }
-            "en proceso" -> {
-                holder.viewStatus.setBackgroundColor(Color.parseColor("#FBC02D")) // Amarillo
-                holder.txtEstado.setTextColor(Color.parseColor("#F9A825"))
-            }
-            "resuelta" -> {
-                holder.viewStatus.setBackgroundColor(Color.parseColor("#388E3C")) // Verde
-                holder.txtEstado.setTextColor(Color.parseColor("#388E3C"))
+            "media" -> {
+                holder.tvUrgencia.text = "🟠 Media"
+                holder.tvUrgencia.setTextColor(Color.parseColor("#F59E0B"))
             }
             else -> {
-                holder.viewStatus.setBackgroundColor(Color.GRAY)
+                holder.tvUrgencia.text = "🟢 Baja"
+                holder.tvUrgencia.setTextColor(Color.parseColor("#10B981"))
             }
         }
 
-        holder.itemView.setOnClickListener { onItemClick(item) }
+        // Colores dinámicos para el ESTADO
+        holder.tvEstado.text = incidencia.estado.uppercase()
+        when (incidencia.estado.lowercase()) {
+            "iniciada", "pendiente" -> {
+                holder.cardEstado.setCardBackgroundColor(Color.parseColor("#FEF3C7")) // Fondo Amarillo
+                holder.tvEstado.setTextColor(Color.parseColor("#D97706")) // Texto Naranja oscuro
+            }
+            "asignada", "en proceso" -> {
+                holder.cardEstado.setCardBackgroundColor(Color.parseColor("#DBEAFE")) // Fondo Azul
+                holder.tvEstado.setTextColor(Color.parseColor("#1D4ED8")) // Texto Azul oscuro
+            }
+            "reparado", "finalizada" -> {
+                holder.cardEstado.setCardBackgroundColor(Color.parseColor("#D1FAE5")) // Fondo Verde
+                holder.tvEstado.setTextColor(Color.parseColor("#059669")) // Texto Verde oscuro
+            }
+            "requiere_cau", "avisado_cau" -> {
+                holder.cardEstado.setCardBackgroundColor(Color.parseColor("#FEE2E2")) // Fondo Rojo
+                holder.tvEstado.setTextColor(Color.parseColor("#DC2626")) // Texto Rojo oscuro
+            }
+            else -> {
+                holder.cardEstado.setCardBackgroundColor(Color.parseColor("#F3F4F6")) // Gris por defecto
+                holder.tvEstado.setTextColor(Color.parseColor("#4B5563"))
+            }
+        }
+
+        holder.itemView.setOnClickListener { onClick(incidencia) }
     }
 
     override fun getItemCount() = lista.size
