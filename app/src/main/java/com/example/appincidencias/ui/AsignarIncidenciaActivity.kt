@@ -20,11 +20,13 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide() // Ocultamos la barra superior para un diseño más limpio
         setContentView(R.layout.activity_asignar_incidencia)
 
         idIncidencia = intent.getStringExtra("id") ?: ""
 
-        val spinner = findViewById<Spinner>(R.id.spinnerTecnicos)
+        // Enlazamos con el nuevo desplegable moderno
+        val autoCompleteTecnicos = findViewById<AutoCompleteTextView>(R.id.autoCompleteTecnicos)
         val btn = findViewById<Button>(R.id.btnGuardarAsignacion)
 
         // 1. PRIMERO: Recuperamos los datos de la incidencia para poder enviarlos por correo luego
@@ -48,24 +50,36 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
                     Pair(it.id, it.getString("email") ?: "")
                 }
 
-                // Creamos la lista de nombres para el Spinner
+                // Creamos la lista de nombres para el desplegable
                 val nombres = snap.documents.map {
                     it.getString("nombre") ?: it.getString("email") ?: "Sin nombre"
                 }
 
-                spinner.adapter = ArrayAdapter(
+                // Configuramos el adaptador visual moderno
+                val adapter = ArrayAdapter(
                     this,
-                    android.R.layout.simple_spinner_dropdown_item,
+                    android.R.layout.simple_dropdown_item_1line,
                     nombres
                 )
+                autoCompleteTecnicos.setAdapter(adapter)
 
                 btn.setOnClickListener {
+                    val tecnicoSeleccionado = autoCompleteTecnicos.text.toString()
+
                     if (listaTecnicos.isEmpty()) {
                         Toast.makeText(this, "No hay técnicos disponibles", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
 
-                    val index = spinner.selectedItemPosition
+                    if (tecnicoSeleccionado.isEmpty()) {
+                        Toast.makeText(this, "Por favor, selecciona un técnico", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    // Obtenemos el índice basado en el nombre seleccionado en el nuevo componente
+                    val index = nombres.indexOf(tecnicoSeleccionado)
+                    if (index == -1) return@setOnClickListener
+
                     val (uidTecnico, emailTecnico) = listaTecnicos[index]
 
                     // 3. ACTUALIZAMOS LA INCIDENCIA EN FIREBASE

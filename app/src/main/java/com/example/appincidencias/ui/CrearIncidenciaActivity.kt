@@ -19,6 +19,7 @@ class CrearIncidenciaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_crear_incidencia)
 
         auth = FirebaseAuth.getInstance()
@@ -26,35 +27,30 @@ class CrearIncidenciaActivity : AppCompatActivity() {
 
         val inputAula = findViewById<EditText>(R.id.inputAula)
         val inputDescripcion = findViewById<EditText>(R.id.inputDescripcion)
-        // CAMBIO: Referencia al Spinner y ProgressBar
-        val spinnerUrgencia = findViewById<Spinner>(R.id.spinnerUrgencia)
+        val spinnerUrgencia = findViewById<AutoCompleteTextView>(R.id.spinnerUrgencia)
         val btnCrear = findViewById<Button>(R.id.btnCrearIncidencia)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
-        // 1. Configurar el Spinner con las opciones
         val niveles = arrayOf("Baja", "Media", "Alta")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, niveles)
-        spinnerUrgencia.adapter = adapter
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, niveles)
+        spinnerUrgencia.setAdapter(adapter)
 
         btnCrear.setOnClickListener {
             val aula = inputAula.text.toString().trim()
             val descripcion = inputDescripcion.text.toString().trim()
-            // CAMBIO: Obtener valor del Spinner
-            val urgencia = spinnerUrgencia.selectedItem.toString()
+            val urgencia = spinnerUrgencia.text.toString()
 
             val usuario = auth.currentUser
             val docenteId = usuario?.uid ?: ""
-            // Intentamos usar el nombre o el email como fallback
             val docenteNombre = usuario?.displayName ?: usuario?.email ?: "Docente"
 
             val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
-            if (aula.isEmpty() || descripcion.isEmpty()) {
-                Toast.makeText(this, "Completa aula y descripción", Toast.LENGTH_SHORT).show()
+            if (aula.isEmpty() || descripcion.isEmpty() || urgencia.isEmpty()) {
+                Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 2. Mostrar carga y bloquear botón para que el usuario sepa que está pasando algo
             progressBar.visibility = View.VISIBLE
             btnCrear.isEnabled = false
 
@@ -64,7 +60,7 @@ class CrearIncidenciaActivity : AppCompatActivity() {
                 urgencia = urgencia,
                 fecha = fecha,
                 docenteId = docenteId,
-                docenteNombre = docenteNombre, // Guardamos quién la creó
+                docenteNombre = docenteNombre,
                 estado = "iniciada",
                 asignadoA = null,
                 id = null
@@ -80,7 +76,6 @@ class CrearIncidenciaActivity : AppCompatActivity() {
                 .addOnFailureListener { e ->
                     progressBar.visibility = View.GONE
                     btnCrear.isEnabled = true
-                    // 3. Mostrar el error real para saber por qué falla
                     Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         }

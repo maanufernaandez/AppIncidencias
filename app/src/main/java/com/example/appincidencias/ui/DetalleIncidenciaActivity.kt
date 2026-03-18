@@ -21,6 +21,7 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_detalle_incidencia)
 
         docId = intent.getStringExtra("id") ?: return
@@ -29,17 +30,15 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         val txtDesc = findViewById<TextView>(R.id.txtDDesc)
         val txtEstado = findViewById<TextView>(R.id.txtDEstado)
 
-        // Referencia al nuevo campo de comentario del guardia (asegúrate de añadir un TextView en el XML si quieres verlo, o úsalo en un Toast)
-        // Por simplicidad, aquí mostramos la descripción original.
-
         val btnAsignar = findViewById<Button>(R.id.btnAsignar)
-        val btnEstado = findViewById<Button>(R.id.btnCambiarEstado) // Botón principal de acción
-        val btnCau = findViewById<Button>(R.id.btnAvisarCau) // Botón secundario
+        val btnEstado = findViewById<Button>(R.id.btnCambiarEstado)
+        val btnCau = findViewById<Button>(R.id.btnAvisarCau)
+        val btnEliminar = findViewById<Button>(R.id.btnEliminar) // Nueva referencia
 
-        // Ocultar por defecto
         btnAsignar.visibility = View.GONE
         btnEstado.visibility = View.GONE
         btnCau.visibility = View.GONE
+        btnEliminar.visibility = View.GONE // Oculto por defecto
 
         db.collection("incidencias").document(docId)
             .addSnapshotListener { snap, _ ->
@@ -48,7 +47,6 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
                     val descripcion = snap.getString("descripcion")
                     val comentarioGuardia = snap.getString("comentarioGuardia") ?: ""
 
-                    // Si el guardia ya comentó, lo mostramos junto a la descripción
                     if (comentarioGuardia.isNotEmpty()) {
                         txtDesc.text = "$descripcion\n\n[GUARDIA]: $comentarioGuardia"
                     } else {
@@ -59,26 +57,54 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
                     txtEstado.text = estadoActual.uppercase().replace("_", " ")
 
                     configurarBotones(btnAsignar, btnEstado, btnCau)
+
+                    // Lógica para mostrar el botón Eliminar SOLO si está finalizada
+                    if (estadoActual.lowercase() == "finalizada") {
+                        btnEliminar.visibility = View.VISIBLE
+                    } else {
+                        btnEliminar.visibility = View.GONE
+                    }
                 }
             }
 
-        // Listeners de botones
         btnAsignar.setOnClickListener {
             val intent = Intent(this, AsignarIncidenciaActivity::class.java)
             intent.putExtra("id", docId)
             startActivity(intent)
         }
 
-        // Botón para gestionar el aviso al CAU (Solo Admin cuando el guardia lo solicita)
         btnCau.setOnClickListener {
             val intent = Intent(this, AvisarCAUActivity::class.java)
             intent.putExtra("id", docId)
             startActivity(intent)
         }
 
-        // Botón principal de flujo de estados
         btnEstado.setOnClickListener {
             ejecutarAccionEstado()
+        }
+
+        // --- NUEVA LÓGICA DE ELIMINACIÓN (Modified to use custom view CC) ---
+        btnEliminar.setOnClickListener {
+            // Inflamos el diseño XML moderno personalizado
+            val view = layoutInflater.inflate(R.layout.dialog_confirmar_eliminacion, null)
+
+            // Usamos MaterialAlertDialogBuilder para un diseño moderno con bordes redondeados
+            val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            builder.setView(view) // <-- Usar el diseño personalizado CC
+
+            builder.setPositiveButton("ELIMINAR") { _, _ ->
+                db.collection("incidencias").document(docId).delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Incidencia eliminada", Toast.LENGTH_SHORT).show()
+                        finish() // Cierra la pantalla y vuelve a la lista
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Error al eliminar", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            builder.setNegativeButton("CANCELAR", null) // El bot&oacute;n negativo por defecto es moderno en el builder
+
+            builder.show()
         }
     }
 
@@ -147,23 +173,35 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
 
     // Diálogo para que el guardia explique qué hizo o por qué requiere CAU
     private fun mostrarDialogoGuardia(nuevoEstado: String) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(if (nuevoEstado == "reparado") "Detalle de Reparación" else "Motivo aviso CAU")
+        // Inflamos el diseño XML moderno personalizado
+        val view = layoutInflater.inflate(R.layout.dialog_motivo_guardia, null)
 
-        val input = EditText(this)
-        input.hint = "Escribe aquí una descripción..."
-        input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-        builder.setView(input)
+        val tvTitulo = view.findViewById<TextView>(R.id.tvDDialogoTitulo)
+        val etMotivo = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etDDialogoMotivo)
 
-        builder.setPositiveButton("Guardar") { _, _ ->
-            val comentario = input.text.toString().trim()
+        // Cambiamos el título dinámicamente según la acción
+        if (nuevoEstado == "reparado") {
+            tvTitulo.text = "Detalle de Reparación"
+        } else {
+            tvTitulo.text = "Motivo de Aviso CAU"
+        }
+
+        // Usamos MaterialAlertDialogBuilder para un diseño moderno con bordes redondeados
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        builder.setView(view)
+
+        builder.setPositiveButton("GUARDAR") { _, _ ->
+            val comentario = etMotivo.text.toString().trim()
             if (comentario.isNotEmpty()) {
                 actualizarEstado(nuevoEstado, comentario)
             } else {
-                Toast.makeText(this, "La descripción es obligatoria", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "El comentario es obligatorio", Toast.LENGTH_SHORT).show()
             }
         }
-        builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.cancel() }
+
+        builder.setNegativeButton("CANCELAR") { dialog, _ ->
+            dialog.cancel()
+        }
 
         builder.show()
     }
