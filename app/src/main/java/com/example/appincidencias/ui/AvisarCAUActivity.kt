@@ -19,28 +19,25 @@ class AvisarCAUActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_avisar_cau)
 
-        // Recuperamos el ID que nos pasan desde la pantalla anterior
         incidenciaId = intent.getStringExtra("id") ?: ""
 
         val inputPersonaAviso = findViewById<EditText>(R.id.inputPersonaAviso)
-        val inputEmailCau = findViewById<EditText>(R.id.inputEmailCau)
         val btnAvisar = findViewById<Button>(R.id.btnAvisarCau)
 
         btnAvisar.setOnClickListener {
             val persona = inputPersonaAviso.text.toString().trim()
-            val emailDestino = inputEmailCau.text.toString().trim()
 
-            if (persona.isEmpty() || emailDestino.isEmpty()) {
-                Toast.makeText(this, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+            if (persona.isEmpty()) {
+                Toast.makeText(this, "Por favor, indica quién da el aviso", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 1. Primero actualizamos el estado en Firebase para dejar constancia
-            actualizarEstadoIncidencia(persona, emailDestino)
+            // Solo pasamos el nombre de la persona, ya no hace falta el email
+            actualizarEstadoIncidencia(persona)
         }
     }
 
-    private fun actualizarEstadoIncidencia(persona: String, emailDestino: String) {
+    private fun actualizarEstadoIncidencia(persona: String) {
         db.collection("incidencias").document(incidenciaId)
             .update(
                 mapOf(
@@ -49,10 +46,8 @@ class AvisarCAUActivity : AppCompatActivity() {
                 )
             )
             .addOnSuccessListener {
-                // 2. Si se guardó bien en la base de datos, abrimos la app de correo
-                abrirAppDeCorreo(persona, emailDestino)
-                Toast.makeText(this, "Aviso registrado. Abriendo correo...", Toast.LENGTH_LONG).show()
-                finish() // Cerramos esta pantalla
+                Toast.makeText(this, "Aviso al CAU registrado correctamente", Toast.LENGTH_LONG).show()
+                finish()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Error al actualizar la incidencia", Toast.LENGTH_SHORT).show()

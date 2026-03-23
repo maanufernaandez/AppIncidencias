@@ -9,18 +9,16 @@
         android:id="@+id/inputPersonaAviso"
         android:hint="Persona que avisa al CAU"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <EditText
-        android:id="@+id/inputEmailCau"
-        android:hint="Correo del CAU"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnAvisarCau"
-        android:text="Enviar aviso"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:minHeight="48dp" /> <EditText
+    android:id="@+id/inputEmailCau"
+    android:hint="Correo del CAU"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="48dp" /> <Button
+    android:id="@+id/btnAvisarCau"
+    android:text="Enviar aviso"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
 
 </LinearLayout>

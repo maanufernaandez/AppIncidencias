@@ -20,16 +20,14 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide() // Ocultamos la barra superior para un diseño más limpio
+        supportActionBar?.hide()
         setContentView(R.layout.activity_asignar_incidencia)
 
         idIncidencia = intent.getStringExtra("id") ?: ""
 
-        // Enlazamos con el nuevo desplegable moderno
         val autoCompleteTecnicos = findViewById<AutoCompleteTextView>(R.id.autoCompleteTecnicos)
         val btn = findViewById<Button>(R.id.btnGuardarAsignacion)
 
-        // 1. PRIMERO: Recuperamos los datos de la incidencia para poder enviarlos por correo luego
         db.collection("incidencias").document(idIncidencia).get()
             .addOnSuccessListener { doc ->
                 if (doc.exists()) {
@@ -39,23 +37,19 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
                 }
             }
 
-        // 2. CARGAMOS LA LISTA DE TÉCNICOS (Rol: "guardia")
         db.collection("usuarios")
             .whereEqualTo("rol", "guardia")
             .get()
             .addOnSuccessListener { snap ->
 
-                // Guardamos una lista de pares (ID, Email)
                 val listaTecnicos = snap.documents.map {
                     Pair(it.id, it.getString("email") ?: "")
                 }
 
-                // Creamos la lista de nombres para el desplegable
                 val nombres = snap.documents.map {
                     it.getString("nombre") ?: it.getString("email") ?: "Sin nombre"
                 }
 
-                // Configuramos el adaptador visual moderno
                 val adapter = ArrayAdapter(
                     this,
                     android.R.layout.simple_dropdown_item_1line,
@@ -76,24 +70,18 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
                         return@setOnClickListener
                     }
 
-                    // Obtenemos el índice basado en el nombre seleccionado en el nuevo componente
                     val index = nombres.indexOf(tecnicoSeleccionado)
                     if (index == -1) return@setOnClickListener
 
-                    val (uidTecnico, emailTecnico) = listaTecnicos[index]
+                    val (uidTecnico, _) = listaTecnicos[index]
 
-                    // 3. ACTUALIZAMOS LA INCIDENCIA EN FIREBASE
                     db.collection("incidencias").document(idIncidencia)
                         .update(mapOf(
                             "asignadoA" to uidTecnico,
-                            "estado" to "asignada" // Cambia el estado a asignada
+                            "estado" to "asignada"
                         ))
                         .addOnSuccessListener {
                             Toast.makeText(this, "Asignado correctamente", Toast.LENGTH_SHORT).show()
-
-                            // 4. ENVIAMOS EL CORREO CON LOS DATOS RECUPERADOS
-                            enviarCorreoNotificacion(emailTecnico, aulaIncidencia, descIncidencia, urgenciaIncidencia)
-
                             finish()
                         }
                         .addOnFailureListener {
