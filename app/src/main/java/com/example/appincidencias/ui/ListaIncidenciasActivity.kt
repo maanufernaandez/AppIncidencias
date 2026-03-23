@@ -88,10 +88,23 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                             )
                         }
 
-                        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                        // Función interna para dar peso a los estados y ordenarlos como pediste
+                        fun obtenerPesoEstado(estado: String): Int {
+                            return when (estado.lowercase()) {
+                                "iniciada", "pendiente" -> 1
+                                "asignada", "en proceso" -> 2
+                                "reparado" -> 3
+                                "requiere_cau", "avisado_cau" -> 4
+                                "finalizada" -> 5
+                                else -> 6
+                            }
+                        }
 
+                        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+
+                        // Ordenamos primero por el peso del estado (1 arriba, 5 abajo) y luego por fecha más reciente
                         listaIncidencias = lista.sortedWith(
-                            compareBy<Incidencia> { it.estado }
+                            compareBy<Incidencia> { obtenerPesoEstado(it.estado) }
                                 .thenByDescending {
                                     try {
                                         sdf.parse(it.fecha)?.time ?: 0L

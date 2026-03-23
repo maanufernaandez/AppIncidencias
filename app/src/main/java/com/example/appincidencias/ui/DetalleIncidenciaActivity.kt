@@ -33,12 +33,12 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         val btnAsignar = findViewById<Button>(R.id.btnAsignar)
         val btnEstado = findViewById<Button>(R.id.btnCambiarEstado)
         val btnCau = findViewById<Button>(R.id.btnAvisarCau)
-        val btnEliminar = findViewById<Button>(R.id.btnEliminar) // Nueva referencia
+        val btnEliminar = findViewById<Button>(R.id.btnEliminar)
 
         btnAsignar.visibility = View.GONE
         btnEstado.visibility = View.GONE
         btnCau.visibility = View.GONE
-        btnEliminar.visibility = View.GONE // Oculto por defecto
+        btnEliminar.visibility = View.GONE
 
         db.collection("incidencias").document(docId)
             .addSnapshotListener { snap, _ ->
@@ -56,14 +56,11 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
                     estadoActual = snap.getString("estado") ?: "iniciada"
                     txtEstado.text = estadoActual.uppercase().replace("_", " ")
 
-                    configurarBotones(btnAsignar, btnEstado, btnCau)
+                    // Recuperamos a quién está asignada para pasárselo a la validación de botones
+                    val asignadoA = snap.getString("asignadoA") ?: ""
 
-                    // Lógica para mostrar el botón Eliminar SOLO si está finalizada
-                    if (estadoActual.lowercase() == "finalizada") {
-                        btnEliminar.visibility = View.VISIBLE
-                    } else {
-                        btnEliminar.visibility = View.GONE
-                    }
+                    // Pasamos todos los botones y el UID del asignado
+                    configurarBotones(btnAsignar, btnEstado, btnCau, btnEliminar, asignadoA)
                 }
             }
 
@@ -83,79 +80,74 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
             ejecutarAccionEstado()
         }
 
-        // --- NUEVA LÓGICA DE ELIMINACIÓN (Modified to use custom view CC) ---
         btnEliminar.setOnClickListener {
-            // Inflamos el diseño XML moderno personalizado
             val view = layoutInflater.inflate(R.layout.dialog_confirmar_eliminacion, null)
-
-            // Usamos MaterialAlertDialogBuilder para un diseño moderno con bordes redondeados
             val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            builder.setView(view) // <-- Usar el diseño personalizado CC
-
+            builder.setView(view)
             builder.setPositiveButton("ELIMINAR") { _, _ ->
                 db.collection("incidencias").document(docId).delete()
                     .addOnSuccessListener {
                         Toast.makeText(this, "Incidencia eliminada", Toast.LENGTH_SHORT).show()
-                        finish() // Cierra la pantalla y vuelve a la lista
+                        finish()
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Error al eliminar", Toast.LENGTH_SHORT).show()
                     }
             }
-            builder.setNegativeButton("CANCELAR", null) // El bot&oacute;n negativo por defecto es moderno en el builder
-
+            builder.setNegativeButton("CANCELAR", null)
             builder.show()
         }
     }
 
-    private fun configurarBotones(btnAsignar: Button, btnEstado: Button, btnCau: Button) {
+    private fun configurarBotones(btnAsignar: Button, btnEstado: Button, btnCau: Button, btnEliminar: Button, asignadoA: String) {
         val myUid = auth.currentUser?.uid ?: return
 
         db.collection("usuarios").document(myUid).get().addOnSuccessListener { userDoc ->
             val rol = userDoc.getString("rol") ?: ""
 
-            // Reiniciar visibilidad
+            // Reiniciar visibilidad de todos los botones
             btnAsignar.visibility = View.GONE
             btnEstado.visibility = View.GONE
             btnCau.visibility = View.GONE
+            btnEliminar.visibility = View.GONE
 
             when (rol) {
                 "administrador" -> {
-                    // Admin puede asignar si está iniciada
                     if (estadoActual == "iniciada") {
                         btnAsignar.visibility = View.VISIBLE
                     }
-                    // Admin finaliza si está reparada
                     if (estadoActual == "reparado") {
                         btnEstado.visibility = View.VISIBLE
                         btnEstado.text = "FINALIZAR INCIDENCIA"
                     }
-                    // Admin gestiona CAU si el guardia dice que hace falta
                     if (estadoActual == "requiere_cau") {
                         btnCau.visibility = View.VISIBLE
                         btnCau.text = "GESTIONAR AVISO AL CAU"
                     }
-                    // Admin finaliza si ya se avisó al CAU
                     if (estadoActual == "avisado_cau") {
                         btnEstado.visibility = View.VISIBLE
                         btnEstado.text = "CERRAR (YA AVISADO)"
                     }
+                    // ELIMINAR ESTÁ RESTRINGIDO SOLO A ADMINISTRADOR Y SOLO SI ESTÁ FINALIZADA
+                    if (estadoActual.lowercase() == "finalizada") {
+                        btnEliminar.visibility = View.VISIBLE
+                    }
                 }
                 "guardia" -> {
-                    // Guardia recibe "asignada" -> Pasa a "en proceso"
-                    if (estadoActual == "asignada") {
-                        btnEstado.visibility = View.VISIBLE
-                        btnEstado.text = "COMENZAR (EN PROCESO)"
-                    }
-                    // Guardia está trabajando -> Puede Reparar o Pedir CAU
-                    if (estadoActual == "en proceso") {
-                        btnEstado.visibility = View.VISIBLE
-                        btnEstado.text = "MARCAR COMO REPARADO"
+                    // EL GUARDIA SOLO VE ACCIONES SI ES SU INCIDENCIA
+                    if (asignadoA == myUid) {
+                        if (estadoActual == "asignada") {
+                            btnEstado.visibility = View.VISIBLE
+                            btnEstado.text = "COMENZAR (EN PROCESO)"
+                        }
+                        if (estadoActual == "en proceso") {
+                            btnEstado.visibility = View.VISIBLE
+                            btnEstado.text = "MARCAR COMO REPARADO"
 
-                        // Usamos el botón secundario para la opción del CAU
-                        btnCau.visibility = View.VISIBLE
-                        btnCau.text = "NECESARIO AVISAR CAU"
-                        btnCau.setOnClickListener { mostrarDialogoGuardia("requiere_cau") }
+                            btnCau.visibility = View.VISIBLE
+                            btnCau.text = "NECESARIO AVISAR CAU"
+                            btnCau.setOnClickListener { mostrarDialogoGuardia("requiere_cau") }
+                        }
                     }
                 }
                 // Docente: solo mira, no botones

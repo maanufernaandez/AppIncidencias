@@ -52,7 +52,7 @@ class ListaIncidenciasAdminActivity : AppCompatActivity() {
                 }
 
                 if (result != null) {
-                    listaIncidencias = result.documents.map { doc ->
+                    val lista = result.documents.map { doc ->
                         Incidencia(
                             id = doc.id,
                             aula = doc.getString("aula") ?: "",
@@ -63,7 +63,34 @@ class ListaIncidenciasAdminActivity : AppCompatActivity() {
                             docenteId = doc.getString("docenteId") ?: "",
                             docenteNombre = doc.getString("docenteNombre") ?: ""
                         )
-                    }.toMutableList()
+                    }
+
+                    // Función interna para dar peso a los estados y ordenarlos como pediste
+                    fun obtenerPesoEstado(estado: String): Int {
+                        return when (estado.lowercase()) {
+                            "iniciada", "pendiente" -> 1
+                            "asignada", "en proceso" -> 2
+                            "reparado" -> 3
+                            "requiere_cau", "avisado_cau" -> 4
+                            "finalizada" -> 5
+                            else -> 6
+                        }
+                    }
+
+                    // Usamos la ruta completa (java.text.SimpleDateFormat) por si no lo tienes importado arriba
+                    val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+
+                    // Aplicamos el orden: Primero estado (arriba iniciadas, abajo finalizadas), luego más recientes
+                    listaIncidencias = lista.sortedWith(
+                        compareBy<Incidencia> { obtenerPesoEstado(it.estado) }
+                            .thenByDescending {
+                                try {
+                                    sdf.parse(it.fecha)?.time ?: 0L
+                                } catch (e: Exception) {
+                                    0L
+                                }
+                            }
+                    ).toMutableList()
 
                     // Actualizamos el adaptador con los datos nuevos
                     adapter.actualizarLista(listaIncidencias)
