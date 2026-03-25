@@ -13,8 +13,6 @@ import com.example.appincidencias.adapters.IncidenciasAdapter
 import com.example.appincidencias.models.Incidencia
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class ListaIncidenciasActivity : AppCompatActivity() {
 
@@ -88,7 +86,7 @@ class ListaIncidenciasActivity : AppCompatActivity() {
                             )
                         }
 
-                        // Función interna para dar peso a los estados y ordenarlos como pediste
+                        // Función interna para dar peso a los estados y ordenarlos
                         fun obtenerPesoEstado(estado: String): Int {
                             return when (estado.lowercase()) {
                                 "iniciada", "pendiente" -> 1

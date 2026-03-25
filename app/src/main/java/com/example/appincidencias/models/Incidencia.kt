@@ -10,6 +10,6 @@ data class Incidencia(
     var docenteNombre: String = "",
     var estado: String = "pendiente", // iniciada, asignada, en proceso, reparado, requiere_cau, avisado_cau, finalizada
     var asignadoA: String? = null,
-    var comentarioGuardia: String = "", // NUEVO: Para que el guardia explique qué hizo
+    var comentarioGuardia: String = "",
     var personaAvisoCAU: String = ""
 )

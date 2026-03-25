@@ -1,8 +1,9 @@
 package com.example.appincidencias.ui
 
 import android.os.Bundle
-import android.widget.*
-import androidx.appcompat.app.AlertDialog
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -51,34 +52,29 @@ class ListaUsuariosActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoEditar(user: User) {
-        // Inflamos nuestro diseño XML personalizado
         val view = layoutInflater.inflate(R.layout.dialog_editar_usuario, null)
 
         val etNombre = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etEditNombre)
         val etEmail = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etEditEmail)
         val autoCompleteRol = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteEditRol)
 
-        // Cargamos los datos actuales en los campos
         etNombre.setText(user.nombre)
         etEmail.setText(user.email)
 
-        // Configuramos el desplegable con las opciones capitalizadas
         val rolesMenu = listOf("Docente", "Guardia", "Administrador")
         val adapterRol = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, rolesMenu)
         autoCompleteRol.setAdapter(adapterRol)
 
-        // Convertimos el rol actual ("docente") a formato visual ("Docente") para que salga preseleccionado
         val rolActualCapitalizado = user.rol.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
         autoCompleteRol.setText(rolActualCapitalizado, false)
 
-        // Usamos MaterialAlertDialogBuilder para que la ventana tenga el estilo de Material Design
         val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
         builder.setView(view)
 
         builder.setPositiveButton("Guardar") { _, _ ->
             val nuevoNombre = etNombre.text.toString().trim()
             val nuevoEmail = etEmail.text.toString().trim()
-            val nuevoRol = autoCompleteRol.text.toString().lowercase() // Volvemos a guardarlo en minúscula
+            val nuevoRol = autoCompleteRol.text.toString().lowercase()
 
             if (nuevoNombre.isEmpty() || nuevoEmail.isEmpty() || nuevoRol.isEmpty()) {
                 Toast.makeText(this, "No se pueden dejar campos vacíos", Toast.LENGTH_SHORT).show()

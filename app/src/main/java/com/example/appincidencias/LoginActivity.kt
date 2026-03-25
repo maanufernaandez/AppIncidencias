@@ -28,7 +28,6 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
-        // IDs actualizados para coincidir con el XML moderno
         val emailInput = findViewById<EditText>(R.id.etEmail)
         val passInput = findViewById<EditText>(R.id.etPassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)

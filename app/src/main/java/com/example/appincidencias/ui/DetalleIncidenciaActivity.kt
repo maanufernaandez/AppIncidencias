@@ -1,12 +1,11 @@
 package com.example.appincidencias.ui
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.View
-import android.widget.*
-import androidx.appcompat.app.AlertDialog
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appincidencias.R
 import com.google.firebase.auth.FirebaseAuth
@@ -163,22 +162,18 @@ class DetalleIncidenciaActivity : AppCompatActivity() {
         }
     }
 
-    // Diálogo para que el guardia explique qué hizo o por qué requiere CAU
     private fun mostrarDialogoGuardia(nuevoEstado: String) {
-        // Inflamos el diseño XML moderno personalizado
         val view = layoutInflater.inflate(R.layout.dialog_motivo_guardia, null)
 
         val tvTitulo = view.findViewById<TextView>(R.id.tvDDialogoTitulo)
         val etMotivo = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etDDialogoMotivo)
 
-        // Cambiamos el título dinámicamente según la acción
         if (nuevoEstado == "reparado") {
             tvTitulo.text = "Detalle de Reparación"
         } else {
             tvTitulo.text = "Motivo de Aviso CAU"
         }
 
-        // Usamos MaterialAlertDialogBuilder para un diseño moderno con bordes redondeados
         val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
         builder.setView(view)
 

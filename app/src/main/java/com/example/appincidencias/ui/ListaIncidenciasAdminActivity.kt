@@ -23,17 +23,12 @@ class ListaIncidenciasAdminActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_incidencias_admin)
 
-        // Referencias a los nuevos IDs del XML
         val recycler = findViewById<RecyclerView>(R.id.recyclerIncidenciasAdmin)
         val tvEmpty = findViewById<TextView>(R.id.tvEmptyAdmin)
 
-        // Configurar RecyclerView
         recycler.layoutManager = LinearLayoutManager(this)
 
-        // CORRECCIÓN DEL ERROR:
-        // Ahora pasamos solo la lista y la función lambda para el click
         adapter = IncidenciasAdapter(listaIncidencias) { incidencia ->
-            // Al hacer click, vamos al detalle
             val intent = Intent(this, DetalleIncidenciaActivity::class.java)
             intent.putExtra("id", incidencia.id)
             startActivity(intent)
@@ -65,7 +60,7 @@ class ListaIncidenciasAdminActivity : AppCompatActivity() {
                         )
                     }
 
-                    // Función interna para dar peso a los estados y ordenarlos como pediste
+                    // Función interna para dar peso a los estados y ordenarlos
                     fun obtenerPesoEstado(estado: String): Int {
                         return when (estado.lowercase()) {
                             "iniciada", "pendiente" -> 1
@@ -77,7 +72,6 @@ class ListaIncidenciasAdminActivity : AppCompatActivity() {
                         }
                     }
 
-                    // Usamos la ruta completa (java.text.SimpleDateFormat) por si no lo tienes importado arriba
                     val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
 
                     // Aplicamos el orden: Primero estado (arriba iniciadas, abajo finalizadas), luego más recientes

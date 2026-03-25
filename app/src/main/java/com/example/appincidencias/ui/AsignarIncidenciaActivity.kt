@@ -13,7 +13,6 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private var idIncidencia = ""
 
-    // Variables para guardar temporalmente los detalles de la incidencia
     private var aulaIncidencia = ""
     private var descIncidencia = ""
     private var urgenciaIncidencia = ""
@@ -109,7 +108,7 @@ class AsignarIncidenciaActivity : AppCompatActivity() {
         """.trimIndent()
 
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:") // Asegura que solo se abran apps de correo
+            data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_EMAIL, arrayOf(emailDestino))
             putExtra(Intent.EXTRA_SUBJECT, asunto)
             putExtra(Intent.EXTRA_TEXT, mensaje)

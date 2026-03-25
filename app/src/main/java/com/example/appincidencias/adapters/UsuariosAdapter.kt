@@ -32,22 +32,20 @@ class UsuariosAdapter(
         holder.tvNombre.text = user.nombre
         holder.tvEmail.text = user.email
 
-        // Capitalizamos la primera letra para que se vea bonito ("Administrador" en vez de "administrador")
         holder.tvRol.text = user.rol.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
 
-        // Colores dinámicos según el rol
         when (user.rol.lowercase()) {
             "administrador" -> {
-                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#FEE2E2")) // Fondo Rojo claro
-                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#DC2626")) // Texto Rojo oscuro
+                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#FEE2E2"))
+                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#DC2626"))
             }
             "guardia" -> {
-                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#D1FAE5")) // Fondo Verde claro
-                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#059669")) // Texto Verde oscuro
+                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#D1FAE5"))
+                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#059669"))
             }
             "docente" -> {
-                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#E0F2FE")) // Fondo Azul claro
-                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#0284C7")) // Texto Azul oscuro
+                holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#E0F2FE"))
+                holder.tvRol.setTextColor(android.graphics.Color.parseColor("#0284C7"))
             }
             else -> {
                 holder.cardRol.setCardBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))

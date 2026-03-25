@@ -37,7 +37,6 @@ class IncidenciasAdapter(
     override fun onBindViewHolder(holder: IncidenciaViewHolder, position: Int) {
         val incidencia = lista[position]
 
-        // --- RESETEAR VALORES POR DEFECTO (Necesario al reciclar vistas) ---
         holder.mainCard.setCardBackgroundColor(Color.WHITE)
         holder.llDiagonalGroup.visibility = View.GONE
         holder.tvUrgencia.visibility = View.VISIBLE
@@ -51,38 +50,31 @@ class IncidenciasAdapter(
 
         // --- LÓGICA DE ESTADOS ESPECIALES ---
         if (estadoLower == "reparado") {
-            // Fondo normal, cambiamos la urgencia por el aviso de comprobar CC
             holder.tvUrgencia.text = "Necesario Comprobar"
-            holder.tvUrgencia.setTextColor(Color.parseColor("#D97706")) // Naranja oscuro
+            holder.tvUrgencia.setTextColor(Color.parseColor("#D97706"))
 
             holder.cardEstado.setCardBackgroundColor(Color.parseColor("#D1FAE5"))
             holder.tvEstado.setTextColor(Color.parseColor("#059669"))
             holder.tvEstado.text = "REPARADO"
 
         } else if (estadoLower == "finalizada") {
-            // Tarjeta ensombrecida, ocultamos la etiqueta y la urgencia, mostramos franja verde
-            holder.mainCard.setCardBackgroundColor(Color.parseColor("#F3F4F6")) // Gris claro
+            holder.mainCard.setCardBackgroundColor(Color.parseColor("#F3F4F6"))
             holder.tvUrgencia.visibility = View.INVISIBLE
             holder.cardEstado.visibility = View.INVISIBLE
 
-            // Capa diagonal visual CC
             holder.llDiagonalGroup.visibility = View.VISIBLE
-            holder.llDiagonalGroup.setBackgroundColor(Color.parseColor("#CC10B981")) // Verde al 80% opacidad
+            holder.llDiagonalGroup.setBackgroundColor(Color.parseColor("#CC10B981"))
 
-            // Texto diagonal CC
             holder.tvDiagonalText.text = "FINALIZADA"
 
         } else if (estadoLower == "requiere_cau" || estadoLower == "avisado_cau") {
-            // Tarjeta enrojecida, ocultamos etiqueta y urgencia, mostramos franja roja
-            holder.mainCard.setCardBackgroundColor(Color.parseColor("#FEF2F2")) // Rojo muy claro
+            holder.mainCard.setCardBackgroundColor(Color.parseColor("#FEF2F2"))
             holder.tvUrgencia.visibility = View.INVISIBLE
             holder.cardEstado.visibility = View.INVISIBLE
 
-            // Capa diagonal visual CC
             holder.llDiagonalGroup.visibility = View.VISIBLE
-            holder.llDiagonalGroup.setBackgroundColor(Color.parseColor("#CCEF4444")) // Rojo al 80% opacidad
+            holder.llDiagonalGroup.setBackgroundColor(Color.parseColor("#CCEF4444"))
 
-            // Texto diagonal CC
             holder.tvDiagonalText.text = if(estadoLower == "requiere_cau") "REQUIERE CAU" else "AVISADO CAU"
 
         } else {

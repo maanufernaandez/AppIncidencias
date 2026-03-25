@@ -32,7 +32,6 @@ class AvisarCAUActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Solo pasamos el nombre de la persona, ya no hace falta el email
             actualizarEstadoIncidencia(persona)
         }
     }
@@ -69,9 +68,8 @@ class AvisarCAUActivity : AppCompatActivity() {
             Un saludo.
         """.trimIndent()
 
-        // Intent explícito para enviar correos
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:") // Solo apps de correo deben manejar esto
+            data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_EMAIL, arrayOf(emailDestino))
             putExtra(Intent.EXTRA_SUBJECT, asunto)
             putExtra(Intent.EXTRA_TEXT, cuerpoMensaje)

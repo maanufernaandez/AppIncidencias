@@ -117,7 +117,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // --- Lógica de Notificaciones ---
-
     private fun verificarNuevasAsignaciones() {
         val user = auth.currentUser ?: return
 
